@@ -1,0 +1,39 @@
+---
+title: Template Methods
+---
+
+<h1>Template Methods</h1>
+
+<p>A Template Method is a method defined purely in terms of the methods that it expects subclasses to implement.</p>
+
+<% code("ruby") do %>
+class BaseTest
+  # This is our template method. We don't necessarily expect set_up, run_test,
+  # or tear_down to be implemented in the BaseTest class.
+  def execute
+    set_up
+    run_test
+    tear_down
+  end
+
+  # If we want to ensure a certain step is implemented, we can raise an exception
+  # if that method is called from the base class.
+  def run_test
+    raise NotImplementedError
+  end
+end
+
+class OurTest < BaseTest
+  def set_up
+    # our implementation
+  end
+
+  def run_test
+    # our implementation
+  end
+
+  def tear_down
+    # our implementation
+  end
+end
+<% end %>

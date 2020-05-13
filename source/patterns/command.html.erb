@@ -1,0 +1,39 @@
+---
+title: The Command Pattern
+---
+
+<h1>The Command Pattern</h1>
+
+<p>The Command Pattern allows us to group operations in an object which can be passed around and invoked on demand. It is composed of several parts.</p>
+
+<p>1) The Command class. This is the lowest level building block of the pattern. We implement a stub <code class="inline-code">#execute</code> method which raises an exception when called. This is to convey our intent that subclasses ought to implement their own versions of this method. In a language that provides mechanisms to inherit and enforce interfaces, this can be formalised. In Ruby, we must simply communicate intent.</p>
+
+<% code("ruby") do %>
+class Command
+  def execute
+    raise NotImplementedError
+  end
+end
+<% end %>
+
+<p>The above building block is no good without an actual implementation.</p>
+
+<% code("ruby") do %>
+class MyCommand < Command
+  def initialize(receiver)
+    @receiver = receiver
+  end
+
+  def execute
+    @receiver.method_one
+    @receiver.method_two
+  end
+end
+
+# Our receiver. This could be basically any object that we might want our
+# command to act on.
+class Receiver
+  def method_one; end
+  def method_two; end
+end
+<% end %>

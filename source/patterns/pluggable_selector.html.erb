@@ -1,0 +1,54 @@
+---
+title: Pluggable Selector
+---
+
+<h1>Pluggable Selector</h1>
+
+<p>If we have a large number of subclasses, each implementing a single method, we have to do a lot of paperwork every time we want to add or remove a type.</p>
+
+<% code("ruby") do %>
+class Report
+  def print
+    raise NotImplementedError
+  end
+end
+
+class PdfReport < Report
+  def print; end
+end
+
+class HtmlReport < Report
+  def print; end
+end
+<% end %>
+
+<p>We can improve this somewhat by introducing a switch statement to what used to be the parent class, but then we still have a large switch statement to maintain, as well as the methods themselves.</p>
+
+<% code("ruby") do %>
+class Report
+  def print(type)
+    case type
+    when 'html'
+      print_html
+    when 'pdf'
+      print_pdf
+    end
+  end
+
+  def print_html; end
+  def print_pdf; end
+end
+<% end %>
+
+<p>By dynamically constructing our method call based on the desired type, we limit the area in which our changes must take place and the system is easier to maintain and comprehend.</p>
+
+<% code("ruby") do %>
+class Report
+  def print(type)
+    send "print_#{type}"
+  end
+
+  def print_html; end
+  def print_pdf; end
+end
+<% end %>

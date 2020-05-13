@@ -1,0 +1,64 @@
+---
+title: Pluggable Object
+---
+
+<h1>Pluggable Object</h1>
+
+<p>If you have repeated conditionals in your object, you may prefer to extract a Pluggable Object.</p>
+
+<p>Credit to Test-Driven Development: By Example, by Kent Beck for the idea behind this example.</p>
+
+<p>You can see in this class that we have three conditionals based on the value of `@selected`</p>
+
+<% code("ruby") do %>
+class SelectionTool
+  attr_reader :selected
+
+  def mouse_down
+    @selected = find_figure
+  
+    if @selected
+      select(selected)
+    end
+  end
+
+  def mouse_move
+    if @selected
+      move(@selected)
+    else
+      move_selection_rectangle
+    end
+  end
+
+  def mouse_up
+    if @selected.nil?
+      select_all
+    end
+  end
+end
+<% end %>
+
+<p>If we know that the different selection modes all responded to the methods `mouse_move` and `mouse_up`, we can do the big thinking up front and radically simplify our code.</p>
+
+<% code("ruby") do %>
+class SelectionToolWithPluggableObject
+  attr_reader :selected, :mode
+
+  def mouse_down
+    @selected = find_figure
+    @mode = if @selected
+              SingleSelection.new(@selected)
+            else
+              MultipleSelection.new
+            end
+  end
+
+  def mouse_move
+    @mode.mouse_move
+  end
+
+  def mouse_up
+    @mode.mouse_up
+  end
+end
+<% end %>

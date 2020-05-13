@@ -1,0 +1,21 @@
+---
+title: Null Object
+---
+
+<h1>Null Object</h1>
+
+<p>Say we have a Twitter-like application, where messages are posted by users, and the user information is displayed along-side each message. If a user deletes their account, those messages are preserved, but displayed in an anonymised manner.</p>
+
+<p>Rather than sprinkling your view code to determine whether or not to display real user data or the details of our hypothetical null user, we can use the Null Object Pattern to create a dummy user that will always respond to our questions.</p>
+
+<% code("ruby") do %>
+class NullUser
+  def username
+    'Deleted User'
+  end
+
+  def method_missing(*)
+    nil
+  end
+end
+<% end %>

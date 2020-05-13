@@ -1,0 +1,75 @@
+html, body { padding: 0; margin: 0; }
+
+body {
+  background-color: #fbc547;
+  color: #333;
+  font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", "Avenir",
+    "Segoe UI", "Lucida Grande", "Helvetica Neue", "Helvetica", "Fira Sans",
+    "Roboto", "Noto", "Droid Sans", "Cantarell", "Oxygen", "Ubuntu",
+    "Franklin Gothic Medium", "Century Gothic", "Liberation Sans", sans-serif;
+}
+
+a {
+  color: rgba(#000, 0.7);
+
+  &:focus,
+  &:hover {
+    color: rgba(#000, 0.6);
+  }
+}
+
+body {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  font-size: 16pt;
+}
+
+nav {
+  min-height: 100vh;
+  padding: 2em;
+
+  p:not(:first-of-type) {
+    margin-top: 2em;
+  }
+}
+
+nav ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+
+  li + li {
+    margin-top: .75em;
+  }
+}
+
+main {
+  padding: 2em;
+  width: 70ch;
+  background: white;
+}
+
+main p {
+  width: 30em;
+  line-height: 1.5em;
+}
+
+main h1:first-of-type {
+  margin-top: 0;
+}
+
+div.highlight {
+  padding: 1em;
+  border-radius: 4px;
+  line-height: 1.5em;
+  overflow-x: scroll;
+  font-size: 13pt;
+}
+
+pre.highlight.ruby {
+  margin: 0;
+}
+
+code.inline-code {
+  font-family: monospace;
+}

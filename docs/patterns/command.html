@@ -1,0 +1,267 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Use the title from a page's frontmatter if it has one -->
+    <title>The Command Pattern</title>
+    <link href="/stylesheets/site.css" rel="stylesheet" />
+    <script src="/javascripts/site.js"></script>
+  </head>
+  <body>
+    <nav>
+  <p><strong>General Patterns</strong></p>
+
+  <ul>
+    <li><a href=/patterns/collecting_parameters.html>Collecting Parameters</a></li>
+    <li><a href=/patterns/command.html>Command</a></li>
+    <li><a href=/patterns/null_object.html>Null Object</a></li>
+    <li><a href=/patterns/pluggable_object.html>Pluggable Object</a></li>
+    <li><a href=/patterns/pluggable_selector.html>Pluggable Selector</a></li>
+    <li><a href=/patterns/template_methods.html>Template Methods</a></li>
+  </ul>
+  
+  <p><strong>Testing Patterns</strong></p>
+
+  <ul>
+    <li><a href="/patterns/crash_test_dummy.html">Crash Test Dummy</a></li>
+    <li><a href="/patterns/self_shunt.html">Self Shunt</a></li>
+  </ul>
+</nav>
+
+    <main><h1>The Command Pattern</h1>
+
+<p>The Command Pattern allows us to group operations in an object which can be passed around and invoked on demand. It is composed of several parts.</p>
+
+<p>1) The Command class. This is the lowest level building block of the pattern. We implement a stub <code class="inline-code">#execute</code> method which raises an exception when called. This is to convey our intent that subclasses ought to implement their own versions of this method. In a language that provides mechanisms to inherit and enforce interfaces, this can be formalised. In Ruby, we must simply communicate intent.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Command</span>
+  <span class="k">def</span> <span class="nf">execute</span>
+    <span class="k">raise</span> <span class="no">NotImplementedError</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>The above building block is no good without an actual implementation.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">MyCommand</span> <span class="o">&lt;</span> <span class="no">Command</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">receiver</span><span class="p">)</span>
+    <span class="vi">@receiver</span> <span class="o">=</span> <span class="n">receiver</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">execute</span>
+    <span class="vi">@receiver</span><span class="p">.</span><span class="nf">method_one</span>
+    <span class="vi">@receiver</span><span class="p">.</span><span class="nf">method_two</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Our receiver. This could be basically any object that we might want our</span>
+<span class="c1"># command to act on.</span>
+<span class="k">class</span> <span class="nc">Receiver</span>
+  <span class="k">def</span> <span class="nf">method_one</span><span class="p">;</span> <span class="k">end</span>
+  <span class="k">def</span> <span class="nf">method_two</span><span class="p">;</span> <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></main>
+  </body>
+  <style>
+    .highlight table td { padding: 5px; }
+.highlight table pre { margin: 0; }
+.highlight .gh {
+  color: #999999;
+}
+.highlight .sr {
+  color: #f6aa11;
+}
+.highlight .go {
+  color: #888888;
+}
+.highlight .gp {
+  color: #555555;
+}
+.highlight .gs {
+}
+.highlight .gu {
+  color: #aaaaaa;
+}
+.highlight .nb {
+  color: #f6aa11;
+}
+.highlight .cm {
+  color: #75715e;
+}
+.highlight .cp {
+  color: #75715e;
+}
+.highlight .c1 {
+  color: #75715e;
+}
+.highlight .cs {
+  color: #75715e;
+}
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cpf {
+  color: #75715e;
+}
+.highlight .err {
+  color: #960050;
+}
+.highlight .gr {
+  color: #960050;
+}
+.highlight .gt {
+  color: #960050;
+}
+.highlight .gd {
+  color: #49483e;
+}
+.highlight .gi {
+  color: #49483e;
+}
+.highlight .ge {
+  color: #49483e;
+}
+.highlight .kc {
+  color: #66d9ef;
+}
+.highlight .kd {
+  color: #66d9ef;
+}
+.highlight .kr {
+  color: #66d9ef;
+}
+.highlight .no {
+  color: #66d9ef;
+}
+.highlight .kt {
+  color: #66d9ef;
+}
+.highlight .mf {
+  color: #ae81ff;
+}
+.highlight .mh {
+  color: #ae81ff;
+}
+.highlight .il {
+  color: #ae81ff;
+}
+.highlight .mi {
+  color: #ae81ff;
+}
+.highlight .mo {
+  color: #ae81ff;
+}
+.highlight .m, .highlight .mb, .highlight .mx {
+  color: #ae81ff;
+}
+.highlight .sc {
+  color: #ae81ff;
+}
+.highlight .se {
+  color: #ae81ff;
+}
+.highlight .ss {
+  color: #ae81ff;
+}
+.highlight .sd {
+  color: #e6db74;
+}
+.highlight .s2 {
+  color: #e6db74;
+}
+.highlight .sb {
+  color: #e6db74;
+}
+.highlight .sh {
+  color: #e6db74;
+}
+.highlight .si {
+  color: #e6db74;
+}
+.highlight .sx {
+  color: #e6db74;
+}
+.highlight .s1 {
+  color: #e6db74;
+}
+.highlight .s, .highlight .sa, .highlight .dl {
+  color: #e6db74;
+}
+.highlight .na {
+  color: #a6e22e;
+}
+.highlight .nc {
+  color: #a6e22e;
+}
+.highlight .nd {
+  color: #a6e22e;
+}
+.highlight .ne {
+  color: #a6e22e;
+}
+.highlight .nf, .highlight .fm {
+  color: #a6e22e;
+}
+.highlight .vc {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .nn {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .nl {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .ni {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .bp {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .vg {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .vi {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .nv, .highlight .vm {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .w {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .n, .highlight .py, .highlight .nx {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .ow {
+  color: #f92672;
+}
+.highlight .nt {
+  color: #f92672;
+}
+.highlight .k, .highlight .kv {
+  color: #f92672;
+}
+.highlight .kn {
+  color: #f92672;
+}
+.highlight .kp {
+  color: #f92672;
+}
+.highlight .o {
+  color: #f92672;
+}
+  </style>
+</html>

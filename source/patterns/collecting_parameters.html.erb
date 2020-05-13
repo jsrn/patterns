@@ -1,0 +1,46 @@
+---
+title: Collecting Parameters
+---
+
+<h1>Collecting Parameters</h1>
+
+<p>We might have a method that accumulates the results of a sequence of operations inside a variable and returns it.</p>
+
+<% code("ruby") do %>
+class ScienceExperiment
+  def collect_results
+    results = []
+    results << :result_a
+    results << :result_b
+    results << :result_c
+    results
+  end
+end
+<% end %>
+
+
+<p>This is okay for simple methods, but if we're collecting the results of more complex operations, we may wish to employ a Collecting Parameter.</p>
+
+<% code("ruby") do %>
+class ScienceExperimentWithCollectingParameter
+  def collect_results
+    results = []
+    perform_complex_computation_a(results)
+    perform_complex_computation_b(results)
+    perform_complex_computation_c(results)
+    results
+  end
+
+  def perform_complex_computation_a(results)
+    results << :result_a
+  end
+
+  def perform_complex_computation_b(results)
+    results << :result_b
+  end
+
+  def perform_complex_computation_c(results)
+    results << :result_c
+  end
+end
+<% end %>
