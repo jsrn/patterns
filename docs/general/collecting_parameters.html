@@ -6,7 +6,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Use the title from a page's frontmatter if it has one -->
-    <title>Crash Test Dummy</title>
+    <title>Collecting Parameters</title>
     <link href="//jsrn.net/patterns/stylesheets/site.css" rel="stylesheet" />
     <script src="//jsrn.net/patterns/javascripts/site.js"></script>
   </head>
@@ -15,55 +15,58 @@
   <p><strong>General Patterns</strong></p>
 
   <ul>
-    <li><a href=/patterns/collecting_parameters.html>Collecting Parameters</a></li>
-    <li><a href=/patterns/command.html>Command</a></li>
-    <li><a href=/patterns/null_object.html>Null Object</a></li>
-    <li><a href=/patterns/pluggable_object.html>Pluggable Object</a></li>
-    <li><a href=/patterns/pluggable_selector.html>Pluggable Selector</a></li>
-    <li><a href=/patterns/template_methods.html>Template Methods</a></li>
+    <li><a href="/patterns/general/collecting_parameters.html">Collecting Parameters</a></li>
+    <li><a href="/patterns/general/command.html">Command</a></li>
+    <li><a href="/patterns/general/null_object.html">Null Object</a></li>
+    <li><a href="/patterns/general/pluggable_object.html">Pluggable Object</a></li>
+    <li><a href="/patterns/general/pluggable_selector.html">Pluggable Selector</a></li>
+    <li><a href="/patterns/general/template_methods.html">Template Methods</a></li>
   </ul>
   
   <p><strong>Testing Patterns</strong></p>
 
   <ul>
-    <li><a href="/patterns/crash_test_dummy.html">Crash Test Dummy</a></li>
-    <li><a href="/patterns/self_shunt.html">Self Shunt</a></li>
+    <li><a href="/patterns/testing/crash_test_dummy.html">Crash Test Dummy</a></li>
+    <li><a href="/patterns/testing/self_shunt.html">Self Shunt</a></li>
   </ul>
 </nav>
 
-    <main><h1>Crash Test Dummy</h1>
+    <main><h1>Collecting Parameters</h1>
 
-<p>We have some code that is supposed to handle errors raised by third party APIs, file systems, etc. These services are by their nature difficult to make fail in predictable ways (how do you cause an HTTP API to return a certain error, or cause a file-system error without doing serious damage, for example?)</p>
+<p>We might have a method that accumulates the results of a sequence of operations inside a variable and returns it.</p>
 
-<p>We can make a crash test dummy by mocking or stubbing the object that does the actual system interaction and forcing it to raise a certain exception. This allows us to test the error handling in our code without performing extreme acts.</p>
-
-<div class="highlight"><pre class="highlight ruby"><code><span class="nb">require</span> <span class="s1">'net/http'</span>
-
-<span class="k">class</span> <span class="nc">MyApiClient</span>
-  <span class="k">def</span> <span class="nf">read_from_endpoint</span>
-    <span class="ss">:some_good_stuff_returned_from_the_api</span>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ScienceExperiment</span>
+  <span class="k">def</span> <span class="nf">collect_results</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="ss">:result_a</span>
+    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="ss">:result_b</span>
+    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="ss">:result_c</span>
+    <span class="n">results</span>
   <span class="k">end</span>
 <span class="k">end</span>
+</code></pre></div>
 
-<span class="c1"># The class under test.</span>
-<span class="k">class</span> <span class="nc">ApiConsumer</span>
-  <span class="k">def</span> <span class="nf">pull_data</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="no">MyApiClient</span><span class="p">.</span><span class="nf">new</span><span class="p">.</span><span class="nf">read_from_endpoint</span>
-  <span class="k">rescue</span> <span class="no">Net</span><span class="o">::</span><span class="no">ReadTimeout</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="ss">:read_timeout_failure</span>
-  <span class="k">ensure</span>
-    <span class="n">response</span>
+<p>This is okay for simple methods, but if we're collecting the results of more complex operations, we may wish to employ a Collecting Parameter.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ScienceExperimentWithCollectingParameter</span>
+  <span class="k">def</span> <span class="nf">collect_results</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">perform_complex_computation_a</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="n">perform_complex_computation_b</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="n">perform_complex_computation_c</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="n">results</span>
   <span class="k">end</span>
-<span class="k">end</span>
 
-<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">ApiConsumer</span> <span class="k">do</span>
-  <span class="n">it</span> <span class="s1">'handles read timeouts from the api'</span> <span class="k">do</span>
-    <span class="c1"># We're using a stubbed method to implement our crash test dummy.</span>
-    <span class="n">expect_any_instance_of</span><span class="p">(</span><span class="no">MyApiClient</span><span class="p">).</span><span class="nf">to</span> <span class="n">receive</span><span class="p">(</span><span class="ss">:read_from_endpoint</span><span class="p">)</span>
-                                             <span class="p">.</span><span class="nf">and_raise</span><span class="p">(</span><span class="no">Net</span><span class="o">::</span><span class="no">ReadTimeout</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">perform_complex_computation_a</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="ss">:result_a</span>
+  <span class="k">end</span>
 
-    <span class="n">consumer</span> <span class="o">=</span> <span class="no">ApiConsumer</span><span class="p">.</span><span class="nf">new</span>
-    <span class="n">expect</span><span class="p">(</span><span class="n">consumer</span><span class="p">.</span><span class="nf">pull_data</span><span class="p">).</span><span class="nf">to</span> <span class="n">eq</span><span class="p">(</span><span class="ss">:read_timeout_failure</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">perform_complex_computation_b</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="ss">:result_b</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">perform_complex_computation_c</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="ss">:result_c</span>
   <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div></main>

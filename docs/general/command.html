@@ -6,7 +6,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Use the title from a page's frontmatter if it has one -->
-    <title>Template Methods</title>
+    <title>The Command Pattern</title>
     <link href="//jsrn.net/patterns/stylesheets/site.css" rel="stylesheet" />
     <script src="//jsrn.net/patterns/javascripts/site.js"></script>
   </head>
@@ -15,54 +15,52 @@
   <p><strong>General Patterns</strong></p>
 
   <ul>
-    <li><a href=/patterns/collecting_parameters.html>Collecting Parameters</a></li>
-    <li><a href=/patterns/command.html>Command</a></li>
-    <li><a href=/patterns/null_object.html>Null Object</a></li>
-    <li><a href=/patterns/pluggable_object.html>Pluggable Object</a></li>
-    <li><a href=/patterns/pluggable_selector.html>Pluggable Selector</a></li>
-    <li><a href=/patterns/template_methods.html>Template Methods</a></li>
+    <li><a href="/patterns/general/collecting_parameters.html">Collecting Parameters</a></li>
+    <li><a href="/patterns/general/command.html">Command</a></li>
+    <li><a href="/patterns/general/null_object.html">Null Object</a></li>
+    <li><a href="/patterns/general/pluggable_object.html">Pluggable Object</a></li>
+    <li><a href="/patterns/general/pluggable_selector.html">Pluggable Selector</a></li>
+    <li><a href="/patterns/general/template_methods.html">Template Methods</a></li>
   </ul>
   
   <p><strong>Testing Patterns</strong></p>
 
   <ul>
-    <li><a href="/patterns/crash_test_dummy.html">Crash Test Dummy</a></li>
-    <li><a href="/patterns/self_shunt.html">Self Shunt</a></li>
+    <li><a href="/patterns/testing/crash_test_dummy.html">Crash Test Dummy</a></li>
+    <li><a href="/patterns/testing/self_shunt.html">Self Shunt</a></li>
   </ul>
 </nav>
 
-    <main><h1>Template Methods</h1>
+    <main><h1>The Command Pattern</h1>
 
-<p>A Template Method is a method defined purely in terms of the methods that it expects subclasses to implement.</p>
+<p>The Command Pattern allows us to group operations in an object which can be passed around and invoked on demand. It is composed of several parts.</p>
 
-<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">BaseTest</span>
-  <span class="c1"># This is our template method. We don't necessarily expect set_up, run_test,</span>
-  <span class="c1"># or tear_down to be implemented in the BaseTest class.</span>
+<p>1) The Command class. This is the lowest level building block of the pattern. We implement a stub <code class="inline-code">#execute</code> method which raises an exception when called. This is to convey our intent that subclasses ought to implement their own versions of this method. In a language that provides mechanisms to inherit and enforce interfaces, this can be formalised. In Ruby, we must simply communicate intent.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Command</span>
   <span class="k">def</span> <span class="nf">execute</span>
-    <span class="n">set_up</span>
-    <span class="n">run_test</span>
-    <span class="n">tear_down</span>
-  <span class="k">end</span>
-
-  <span class="c1"># If we want to ensure a certain step is implemented, we can raise an exception</span>
-  <span class="c1"># if that method is called from the base class.</span>
-  <span class="k">def</span> <span class="nf">run_test</span>
     <span class="k">raise</span> <span class="no">NotImplementedError</span>
   <span class="k">end</span>
 <span class="k">end</span>
+</code></pre></div>
+<p>The above building block is no good without an actual implementation.</p>
 
-<span class="k">class</span> <span class="nc">OurTest</span> <span class="o">&lt;</span> <span class="no">BaseTest</span>
-  <span class="k">def</span> <span class="nf">set_up</span>
-    <span class="c1"># our implementation</span>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">MyCommand</span> <span class="o">&lt;</span> <span class="no">Command</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">receiver</span><span class="p">)</span>
+    <span class="vi">@receiver</span> <span class="o">=</span> <span class="n">receiver</span>
   <span class="k">end</span>
 
-  <span class="k">def</span> <span class="nf">run_test</span>
-    <span class="c1"># our implementation</span>
+  <span class="k">def</span> <span class="nf">execute</span>
+    <span class="vi">@receiver</span><span class="p">.</span><span class="nf">method_one</span>
+    <span class="vi">@receiver</span><span class="p">.</span><span class="nf">method_two</span>
   <span class="k">end</span>
+<span class="k">end</span>
 
-  <span class="k">def</span> <span class="nf">tear_down</span>
-    <span class="c1"># our implementation</span>
-  <span class="k">end</span>
+<span class="c1"># Our receiver. This could be basically any object that we might want our</span>
+<span class="c1"># command to act on.</span>
+<span class="k">class</span> <span class="nc">Receiver</span>
+  <span class="k">def</span> <span class="nf">method_one</span><span class="p">;</span> <span class="k">end</span>
+  <span class="k">def</span> <span class="nf">method_two</span><span class="p">;</span> <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div></main>
   </body>

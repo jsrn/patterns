@@ -6,7 +6,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Use the title from a page's frontmatter if it has one -->
-    <title>Ruby Patterns</title>
+    <title>Pluggable Object</title>
     <link href="//jsrn.net/patterns/stylesheets/site.css" rel="stylesheet" />
     <script src="//jsrn.net/patterns/javascripts/site.js"></script>
   </head>
@@ -31,10 +31,63 @@
   </ul>
 </nav>
 
-    <main><h1>Ruby Patterns</h1>
+    <main><h1>Pluggable Object</h1>
 
-<p>Welcome to Ruby Patterns! A small library of design and testing patterns for Ruby programmers.</p>
-</main>
+<p>If you have repeated conditionals in your object, you may prefer to extract a Pluggable Object.</p>
+
+<p>Credit to Test-Driven Development: By Example, by Kent Beck for the idea behind this example.</p>
+
+<p>You can see in this class that we have three conditionals based on the value of `@selected`</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">SelectionTool</span>
+  <span class="nb">attr_reader</span> <span class="ss">:selected</span>
+
+  <span class="k">def</span> <span class="nf">mouse_down</span>
+    <span class="vi">@selected</span> <span class="o">=</span> <span class="n">find_figure</span>
+  
+    <span class="k">if</span> <span class="vi">@selected</span>
+      <span class="nb">select</span><span class="p">(</span><span class="n">selected</span><span class="p">)</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">mouse_move</span>
+    <span class="k">if</span> <span class="vi">@selected</span>
+      <span class="n">move</span><span class="p">(</span><span class="vi">@selected</span><span class="p">)</span>
+    <span class="k">else</span>
+      <span class="n">move_selection_rectangle</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">mouse_up</span>
+    <span class="k">if</span> <span class="vi">@selected</span><span class="p">.</span><span class="nf">nil?</span>
+      <span class="n">select_all</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>If we know that the different selection modes all responded to the methods `mouse_move` and `mouse_up`, we can do the big thinking up front and radically simplify our code.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">SelectionToolWithPluggableObject</span>
+  <span class="nb">attr_reader</span> <span class="ss">:selected</span><span class="p">,</span> <span class="ss">:mode</span>
+
+  <span class="k">def</span> <span class="nf">mouse_down</span>
+    <span class="vi">@selected</span> <span class="o">=</span> <span class="n">find_figure</span>
+    <span class="vi">@mode</span> <span class="o">=</span> <span class="k">if</span> <span class="vi">@selected</span>
+              <span class="no">SingleSelection</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="vi">@selected</span><span class="p">)</span>
+            <span class="k">else</span>
+              <span class="no">MultipleSelection</span><span class="p">.</span><span class="nf">new</span>
+            <span class="k">end</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">mouse_move</span>
+    <span class="vi">@mode</span><span class="p">.</span><span class="nf">mouse_move</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">mouse_up</span>
+    <span class="vi">@mode</span><span class="p">.</span><span class="nf">mouse_up</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></main>
   </body>
   <style>
     .highlight table td { padding: 5px; }

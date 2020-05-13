@@ -6,7 +6,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Use the title from a page's frontmatter if it has one -->
-    <title>Null Object</title>
+    <title>Template Methods</title>
     <link href="//jsrn.net/patterns/stylesheets/site.css" rel="stylesheet" />
     <script src="//jsrn.net/patterns/javascripts/site.js"></script>
   </head>
@@ -15,35 +15,53 @@
   <p><strong>General Patterns</strong></p>
 
   <ul>
-    <li><a href=/patterns/collecting_parameters.html>Collecting Parameters</a></li>
-    <li><a href=/patterns/command.html>Command</a></li>
-    <li><a href=/patterns/null_object.html>Null Object</a></li>
-    <li><a href=/patterns/pluggable_object.html>Pluggable Object</a></li>
-    <li><a href=/patterns/pluggable_selector.html>Pluggable Selector</a></li>
-    <li><a href=/patterns/template_methods.html>Template Methods</a></li>
+    <li><a href="/patterns/general/collecting_parameters.html">Collecting Parameters</a></li>
+    <li><a href="/patterns/general/command.html">Command</a></li>
+    <li><a href="/patterns/general/null_object.html">Null Object</a></li>
+    <li><a href="/patterns/general/pluggable_object.html">Pluggable Object</a></li>
+    <li><a href="/patterns/general/pluggable_selector.html">Pluggable Selector</a></li>
+    <li><a href="/patterns/general/template_methods.html">Template Methods</a></li>
   </ul>
   
   <p><strong>Testing Patterns</strong></p>
 
   <ul>
-    <li><a href="/patterns/crash_test_dummy.html">Crash Test Dummy</a></li>
-    <li><a href="/patterns/self_shunt.html">Self Shunt</a></li>
+    <li><a href="/patterns/testing/crash_test_dummy.html">Crash Test Dummy</a></li>
+    <li><a href="/patterns/testing/self_shunt.html">Self Shunt</a></li>
   </ul>
 </nav>
 
-    <main><h1>Null Object</h1>
+    <main><h1>Template Methods</h1>
 
-<p>Say we have a Twitter-like application, where messages are posted by users, and the user information is displayed along-side each message. If a user deletes their account, those messages are preserved, but displayed in an anonymised manner.</p>
+<p>A Template Method is a method defined purely in terms of the methods that it expects subclasses to implement.</p>
 
-<p>Rather than sprinkling your view code to determine whether or not to display real user data or the details of our hypothetical null user, we can use the Null Object Pattern to create a dummy user that will always respond to our questions.</p>
-
-<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">NullUser</span>
-  <span class="k">def</span> <span class="nf">username</span>
-    <span class="s1">'Deleted User'</span>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">BaseTest</span>
+  <span class="c1"># This is our template method. We don't necessarily expect set_up, run_test,</span>
+  <span class="c1"># or tear_down to be implemented in the BaseTest class.</span>
+  <span class="k">def</span> <span class="nf">execute</span>
+    <span class="n">set_up</span>
+    <span class="n">run_test</span>
+    <span class="n">tear_down</span>
   <span class="k">end</span>
 
-  <span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="o">*</span><span class="p">)</span>
-    <span class="kp">nil</span>
+  <span class="c1"># If we want to ensure a certain step is implemented, we can raise an exception</span>
+  <span class="c1"># if that method is called from the base class.</span>
+  <span class="k">def</span> <span class="nf">run_test</span>
+    <span class="k">raise</span> <span class="no">NotImplementedError</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">OurTest</span> <span class="o">&lt;</span> <span class="no">BaseTest</span>
+  <span class="k">def</span> <span class="nf">set_up</span>
+    <span class="c1"># our implementation</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">run_test</span>
+    <span class="c1"># our implementation</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">tear_down</span>
+    <span class="c1"># our implementation</span>
   <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div></main>
