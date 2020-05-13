@@ -45,4 +45,5 @@ page '/*.txt', layout: false
 
 configure :build do
   set :build_dir, 'docs'
+  activate :asset_host, host: '//jsrn.net/patterns'
 end
