@@ -50,7 +50,7 @@ main {
 }
 
 main p {
-  width: 30em;
+  max-width: 30em;
   line-height: 1.5em;
 }
 
@@ -72,4 +72,17 @@ pre.highlight.ruby {
 
 code.inline-code {
   font-family: monospace;
+}
+
+@media (max-width: 600px) {
+  * { box-sizing: border-box; }
+
+	body {
+    grid-template-columns: initial;
+    grid-template-rows: max-content 1fr;
+  }
+
+  main {
+    max-width: 100vw;
+  }
 }

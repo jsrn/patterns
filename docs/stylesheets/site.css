@@ -40,7 +40,7 @@ main {
   background: white; }
 
 main p {
-  width: 30em;
+  max-width: 30em;
   line-height: 1.5em; }
 
 main h1:first-of-type {
@@ -58,3 +58,17 @@ pre.highlight.ruby {
 
 code.inline-code {
   font-family: monospace; }
+
+@media (max-width: 600px) {
+  * {
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box; }
+  body {
+    -ms-grid-columns: initial;
+    grid-template-columns: initial;
+    -ms-grid-rows: -webkit-max-content 1fr;
+    -ms-grid-rows: max-content 1fr;
+    grid-template-rows: -webkit-max-content 1fr;
+    grid-template-rows: max-content 1fr; }
+  main {
+    max-width: 100vw; } }
