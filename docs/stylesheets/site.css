@@ -31,7 +31,7 @@ nav {
   color: var(--white); }
   nav a {
     color: inherit; }
-  nav p:not(:first-of-type) {
+  nav p {
     margin-top: 2em; }
 
 nav ul {
