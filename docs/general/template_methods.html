@@ -6,7 +6,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Use the title from a page's frontmatter if it has one -->
-    <title>Template Methods - Ruby Patterns</title>
+    <title>Template Method - Ruby Patterns</title>
     <link href="/stylesheets/site.css" rel="stylesheet" />
     <script src="/javascripts/site.js"></script>
   </head>
@@ -37,9 +37,17 @@
   <p>made by <a href="https://jsrn.net">jsrn</a></p>
 </nav>
 
-    <main><h1>Template Methods</h1>
+    <main><h1>Template Method</h1>
 
-<p>A Template Method is a method defined purely in terms of the methods that it expects subclasses to implement.</p>
+<h2>What?</h2>
+
+<p>A Template Method is a method defined purely in terms of the methods that it expects a subclass to implement.</p>
+
+<h2>Why?</h2>
+
+<p>The Template Method Pattern allows a developer to define the overall structure of an operation in a parent class while providing control over the specific implementation to subclasses.</p>
+
+<h2>How?</h2>
 
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">BaseTest</span>
   <span class="c1"># This is our template method. We don't necessarily expect set_up, run_test,</span>
