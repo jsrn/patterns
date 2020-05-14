@@ -39,34 +39,48 @@
 
     <main><h1>The Command Pattern</h1>
 
-<p>The Command Pattern allows us to group operations in an object which can be passed around and invoked on demand. It is composed of several parts.</p>
+<h2>What?</h2>
 
-<p>1) The Command class. This is the lowest level building block of the pattern. We implement a stub <code class="inline-code">#execute</code> method which raises an exception when called. This is to convey our intent that subclasses ought to implement their own versions of this method. In a language that provides mechanisms to inherit and enforce interfaces, this can be formalised. In Ruby, we must simply communicate intent.</p>
+<p>The Command Pattern allows us to group operations in an object which can be passed around and invoked on demand.</p>
+
+<h2>Why?</h2>
+
+<p>Useful for cases where we wish to pass an action around our system, store it, defer it, or queue it.</p>
+
+<h2>How?</h2>
+
+<p>We start with a <strong>Receiver</strong>. This is one of our business objects. We'll use a <code class="inline-code">User</code> in this example, and it is the object on which our command is going to operate.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">User</span>
+  <span class="k">def</span> <span class="nf">send_welcome_email</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">apply_introductory_discount</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>The <code class="inline-code">Command</code> class is the lowest level building block of the pattern.</p>
 
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Command</span>
+  <span class="c1"># This is to convey our intent that subclasses should implement this method.</span>
   <span class="k">def</span> <span class="nf">execute</span>
     <span class="k">raise</span> <span class="no">NotImplementedError</span>
   <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div>
-<p>The above building block is no good without an actual implementation.</p>
+<p>And now we can implement <code class="inline-code">GreetUserCommand</code>, which we can pass on or store.</p>
 
-<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">MyCommand</span> <span class="o">&lt;</span> <span class="no">Command</span>
-  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">receiver</span><span class="p">)</span>
-    <span class="vi">@receiver</span> <span class="o">=</span> <span class="n">receiver</span>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">GreetUserCommand</span> <span class="o">&lt;</span> <span class="no">Command</span>
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">user</span><span class="p">)</span>
+    <span class="vi">@user</span> <span class="o">=</span> <span class="n">user</span>
   <span class="k">end</span>
 
   <span class="k">def</span> <span class="nf">execute</span>
-    <span class="vi">@receiver</span><span class="p">.</span><span class="nf">method_one</span>
-    <span class="vi">@receiver</span><span class="p">.</span><span class="nf">method_two</span>
+    <span class="vi">@user</span><span class="p">.</span><span class="nf">send_welcome_email</span>
+    <span class="vi">@user</span><span class="p">.</span><span class="nf">apply_introductory_discount</span>
   <span class="k">end</span>
-<span class="k">end</span>
-
-<span class="c1"># Our receiver. This could be basically any object that we might want our</span>
-<span class="c1"># command to act on.</span>
-<span class="k">class</span> <span class="nc">Receiver</span>
-  <span class="k">def</span> <span class="nf">method_one</span><span class="p">;</span> <span class="k">end</span>
-  <span class="k">def</span> <span class="nf">method_two</span><span class="p">;</span> <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div></main>
   </body>

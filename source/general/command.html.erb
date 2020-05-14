@@ -4,36 +4,52 @@ title: The Command Pattern
 
 <h1>The Command Pattern</h1>
 
-<p>The Command Pattern allows us to group operations in an object which can be passed around and invoked on demand. It is composed of several parts.</p>
+<h2>What?</h2>
 
-<p>1) The Command class. This is the lowest level building block of the pattern. We implement a stub <code class="inline-code">#execute</code> method which raises an exception when called. This is to convey our intent that subclasses ought to implement their own versions of this method. In a language that provides mechanisms to inherit and enforce interfaces, this can be formalised. In Ruby, we must simply communicate intent.</p>
+<p>The Command Pattern allows us to group operations in an object which can be passed around and invoked on demand.</p>
+
+<h2>Why?</h2>
+
+<p>Useful for cases where we wish to pass an action around our system, store it, defer it, or queue it.</p>
+
+<h2>How?</h2>
+
+<p>We start with a <strong>Receiver</strong>. This is one of our business objects. We'll use a <code class="inline-code">User</code> in this example, and it is the object on which our command is going to operate.</p>
+
+<% code("ruby") do %>
+class User
+  def send_welcome_email
+    # ...
+  end
+
+  def apply_introductory_discount
+    # ...
+  end
+end
+<% end %>
+
+<p>The <code class="inline-code">Command</code> class is the lowest level building block of the pattern.</p>
 
 <% code("ruby") do %>
 class Command
+  # This is to convey our intent that subclasses should implement this method.
   def execute
     raise NotImplementedError
   end
 end
 <% end %>
 
-<p>The above building block is no good without an actual implementation.</p>
+<p>And now we can implement <code class="inline-code">GreetUserCommand</code>, which we can pass on or store.</p>
 
 <% code("ruby") do %>
-class MyCommand < Command
-  def initialize(receiver)
-    @receiver = receiver
+class GreetUserCommand < Command
+  def initialize(user)
+    @user = user
   end
 
   def execute
-    @receiver.method_one
-    @receiver.method_two
+    @user.send_welcome_email
+    @user.apply_introductory_discount
   end
-end
-
-# Our receiver. This could be basically any object that we might want our
-# command to act on.
-class Receiver
-  def method_one; end
-  def method_two; end
 end
 <% end %>
