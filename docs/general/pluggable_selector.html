@@ -39,47 +39,48 @@
 
     <main><h1>Pluggable Selector</h1>
 
-<p>If we have a large number of subclasses, each implementing a single method, we have to do a lot of paperwork every time we want to add or remove a type.</p>
+<h2>What?</h2>
 
-<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Report</span>
-  <span class="k">def</span> <span class="nf">print</span>
+<p>Replace subclasses with dynamically generated method calls.</p>
+
+<h2>Why?</h2>
+
+<p>If we have a large number of subclasses that each implement a single method, the overhead involved in maintaining the code can outweigh the benefit of separating them.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Person</span>
+  <span class="k">def</span> <span class="nf">greeting</span>
     <span class="k">raise</span> <span class="no">NotImplementedError</span>
   <span class="k">end</span>
 <span class="k">end</span>
 
-<span class="k">class</span> <span class="nc">PdfReport</span> <span class="o">&lt;</span> <span class="no">Report</span>
-  <span class="k">def</span> <span class="nf">print</span><span class="p">;</span> <span class="k">end</span>
-<span class="k">end</span>
-
-<span class="k">class</span> <span class="nc">HtmlReport</span> <span class="o">&lt;</span> <span class="no">Report</span>
-  <span class="k">def</span> <span class="nf">print</span><span class="p">;</span> <span class="k">end</span>
-<span class="k">end</span>
-</code></pre></div>
-<p>We can improve this somewhat by introducing a switch statement to what used to be the parent class, but then we still have a large switch statement to maintain, as well as the methods themselves.</p>
-
-<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Report</span>
-  <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="n">type</span><span class="p">)</span>
-    <span class="k">case</span> <span class="n">type</span>
-    <span class="k">when</span> <span class="s1">'html'</span>
-      <span class="n">print_html</span>
-    <span class="k">when</span> <span class="s1">'pdf'</span>
-      <span class="n">print_pdf</span>
-    <span class="k">end</span>
+<span class="k">class</span> <span class="nc">EnglishSpeaker</span> <span class="o">&lt;</span> <span class="no">Person</span>
+  <span class="k">def</span> <span class="nf">greeting</span>
+    <span class="s1">'Hello!'</span>
   <span class="k">end</span>
+<span class="k">end</span>
 
-  <span class="k">def</span> <span class="nf">print_html</span><span class="p">;</span> <span class="k">end</span>
-  <span class="k">def</span> <span class="nf">print_pdf</span><span class="p">;</span> <span class="k">end</span>
+<span class="k">class</span> <span class="nc">FrenchSpeaker</span> <span class="o">&lt;</span> <span class="no">Person</span>
+  <span class="k">def</span> <span class="nf">greeting</span>
+    <span class="s1">'Bonjour!'</span>
+  <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div>
+<h2>How?</h2>
+
 <p>By dynamically constructing our method call based on the desired type, we limit the area in which our changes must take place and the system is easier to maintain and comprehend.</p>
 
-<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Report</span>
-  <span class="k">def</span> <span class="nf">print</span><span class="p">(</span><span class="n">type</span><span class="p">)</span>
-    <span class="nb">send</span> <span class="s2">"print_</span><span class="si">#{</span><span class="n">type</span><span class="si">}</span><span class="s2">"</span>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Person</span>
+  <span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="n">language</span><span class="p">)</span>
+    <span class="nb">send</span> <span class="s2">"</span><span class="si">#{</span><span class="n">language</span><span class="si">}</span><span class="s2">_greeting"</span>
   <span class="k">end</span>
 
-  <span class="k">def</span> <span class="nf">print_html</span><span class="p">;</span> <span class="k">end</span>
-  <span class="k">def</span> <span class="nf">print_pdf</span><span class="p">;</span> <span class="k">end</span>
+  <span class="k">def</span> <span class="nf">english_greeting</span>
+    <span class="s1">'Hello!'</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">french_greeting</span>
+    <span class="s1">'Bonjour!'</span>
+  <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div></main>
   </body>

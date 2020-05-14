@@ -4,51 +4,50 @@ title: Pluggable Selector
 
 <h1>Pluggable Selector</h1>
 
-<p>If we have a large number of subclasses, each implementing a single method, we have to do a lot of paperwork every time we want to add or remove a type.</p>
+<h2>What?</h2>
+
+<p>Replace subclasses with dynamically generated method calls.</p>
+
+<h2>Why?</h2>
+
+<p>If we have a large number of subclasses that each implement a single method, the overhead involved in maintaining the code can outweigh the benefit of separating them.</p>
 
 <% code("ruby") do %>
-class Report
-  def print
+class Person
+  def greeting
     raise NotImplementedError
   end
 end
 
-class PdfReport < Report
-  def print; end
-end
-
-class HtmlReport < Report
-  def print; end
-end
-<% end %>
-
-<p>We can improve this somewhat by introducing a switch statement to what used to be the parent class, but then we still have a large switch statement to maintain, as well as the methods themselves.</p>
-
-<% code("ruby") do %>
-class Report
-  def print(type)
-    case type
-    when 'html'
-      print_html
-    when 'pdf'
-      print_pdf
-    end
+class EnglishSpeaker < Person
+  def greeting
+    'Hello!'
   end
+end
 
-  def print_html; end
-  def print_pdf; end
+class FrenchSpeaker < Person
+  def greeting
+    'Bonjour!'
+  end
 end
 <% end %>
+
+<h2>How?</h2>
 
 <p>By dynamically constructing our method call based on the desired type, we limit the area in which our changes must take place and the system is easier to maintain and comprehend.</p>
 
 <% code("ruby") do %>
-class Report
-  def print(type)
-    send "print_#{type}"
+class Person
+  def greet(language)
+    send "#{language}_greeting"
   end
 
-  def print_html; end
-  def print_pdf; end
+  def english_greeting
+    'Hello!'
+  end
+
+  def french_greeting
+    'Bonjour!'
+  end
 end
 <% end %>
