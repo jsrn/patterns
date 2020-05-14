@@ -12,7 +12,7 @@
   </head>
   <body>
     <%= partial "sidebar" %>
-    <main><%= yield %></main>
+    <main id="main"><%= yield %></main>
   </body>
   <style>
     <%= Rouge::Themes::MonokaiSublime.render(scope: '.highlight') %>
