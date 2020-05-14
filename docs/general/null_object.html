@@ -6,7 +6,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Use the title from a page's frontmatter if it has one -->
-    <title>Null Object</title>
+    <title>Null Object - Ruby Patterns</title>
     <link href="/stylesheets/site.css" rel="stylesheet" />
     <script src="/javascripts/site.js"></script>
   </head>
@@ -39,19 +39,61 @@
 
     <main><h1>Null Object</h1>
 
-<p>Say we have a Twitter-like application, where messages are posted by users, and the user information is displayed along-side each message. If a user deletes their account, those messages are preserved, but displayed in an anonymised manner.</p>
+<h2>What?</h2>
 
-<p>Rather than sprinkling your view code to determine whether or not to display real user data or the details of our hypothetical null user, we can use the Null Object Pattern to create a dummy user that will always respond to our questions.</p>
+<p>Replace conditional checks for <code class="inline-code">nil</code> with an object that returns default data or <code class="inline-code">nil</code>.
+
+<h2>Why?</h2>
+
+<p>Tidy up conditional logic in our code.</p>
+
+<p>Imagine you're building a message board. Messages are posted by registered users, but if a user should delete their account, the message is preserved and displayed without any identifying information.</p>
+
+<p>Our view code may be scattered with helper methods like the following:</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">author_username</span><span class="p">(</span><span class="n">post</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">present?</span>
+    <span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">username</span>
+  <span class="k">else</span>
+    <span class="s1">'Deleted user'</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>The more attributes of the user that we're displaying in the page, the more conditional statements we have checking for the existence of said user.</p>
+
+<h2>How?</h2>
+
+<p>How might we describe a user that no longer exists? We would like them to return some sensible data about what such a user might be, and if we ask them anything else that we might ask of an existing user, we at least want the system to <em>not crash</em>.</p>
 
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">NullUser</span>
   <span class="k">def</span> <span class="nf">username</span>
-    <span class="s1">'Deleted User'</span>
+    <span class="s1">'Deleted user'</span>
   <span class="k">end</span>
 
   <span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="o">*</span><span class="p">)</span>
     <span class="kp">nil</span>
   <span class="k">end</span>
 <span class="k">end</span>
+</code></pre></div>
+<p>And what if our instances of <code class="inline-code">Post</code> had an author, even when they didn't?</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Post</span>
+  <span class="k">def</span> <span class="nf">author</span>
+    <span class="nb">self</span><span class="p">[</span><span class="ss">:author</span><span class="p">]</span> <span class="o">||</span> <span class="no">NullUser</span><span class="p">.</span><span class="nf">new</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Now the logic towards our view level becomes considerably more simple.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">author_username</span><span class="p">(</span><span class="n">post</span><span class="p">)</span>
+  <span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">username</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>In fact, our helper method is now so simple that there is a strong argument for removing it entirely and calling our username method directly from the view.
+
+<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"post"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">"author"</span><span class="nt">&gt;</span><span class="cp">&lt;%=</span> <span class="vi">@post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">username</span> <span class="cp">%&gt;</span><span class="nt">&lt;/span&gt;</span>
+<span class="nt">&lt;/div&gt;</span>
 </code></pre></div></main>
   </body>
   <style>

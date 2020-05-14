@@ -4,18 +4,68 @@ title: Null Object
 
 <h1>Null Object</h1>
 
-<p>Say we have a Twitter-like application, where messages are posted by users, and the user information is displayed along-side each message. If a user deletes their account, those messages are preserved, but displayed in an anonymised manner.</p>
+<h2>What?</h2>
 
-<p>Rather than sprinkling your view code to determine whether or not to display real user data or the details of our hypothetical null user, we can use the Null Object Pattern to create a dummy user that will always respond to our questions.</p>
+<p>Replace conditional checks for <code class="inline-code">nil</code> with an object that returns default data or <code class="inline-code">nil</code>.
+
+<h2>Why?</h2>
+
+<p>Tidy up conditional logic in our code.</p>
+
+<p>Imagine you're building a message board. Messages are posted by registered users, but if a user should delete their account, the message is preserved and displayed without any identifying information.</p>
+
+<p>Our view code may be scattered with helper methods like the following:</p>
+
+<% code("ruby") do %>
+def author_username(post)
+  if post.author.present?
+    post.author.username
+  else
+    'Deleted user'
+  end
+end
+<% end %>
+
+<p>The more attributes of the user that we're displaying in the page, the more conditional statements we have checking for the existence of said user.</p>
+
+<h2>How?</h2>
+
+<p>How might we describe a user that no longer exists? We would like them to return some sensible data about what such a user might be, and if we ask them anything else that we might ask of an existing user, we at least want the system to <em>not crash</em>.</p>
 
 <% code("ruby") do %>
 class NullUser
   def username
-    'Deleted User'
+    'Deleted user'
   end
 
   def method_missing(*)
     nil
   end
 end
+<% end %>
+
+<p>And what if our instances of <code class="inline-code">Post</code> had an author, even when they didn't?</p>
+
+<% code("ruby") do %>
+class Post
+  def author
+    self[:author] || NullUser.new
+  end
+end
+<% end %>
+
+<p>Now the logic towards our view level becomes considerably more simple.</p>
+
+<% code("ruby") do %>
+def author_username(post)
+  post.author.username
+end
+<% end %>
+
+<p>In fact, our helper method is now so simple that there is a strong argument for removing it entirely and calling our username method directly from the view.
+
+<% code("erb") do %>
+<div class="post">
+  <span class="author"><%%= @post.author.username %></span>
+</div>
 <% end %>

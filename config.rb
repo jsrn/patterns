@@ -34,11 +34,15 @@ page '/*.txt', layout: false
 # Methods defined in the helpers block are available in templates
 # https://middlemanapp.com/basics/helper-methods/
 
-# helpers do
-#   def some_helper
-#     'Helping'
-#   end
-# end
+helpers do
+  def page_title
+    if current_page.path == 'index.html'
+      'Ruby Patterns'
+    else
+      "#{current_page.data.title} - Ruby Patterns"
+    end
+  end
+end
 
 # Build-specific configuration
 # https://middlemanapp.com/advanced/configuration/#environment-specific-settings
