@@ -6,7 +6,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Use the title from a page's frontmatter if it has one -->
-    <title>Collecting Parameters - Ruby Patterns</title>
+    <title>Collecting Parameter - Ruby Patterns</title>
     <link href="/stylesheets/site.css" rel="stylesheet" />
     <script src="/javascripts/site.js"></script>
   </head>
@@ -19,12 +19,12 @@
   <p><strong>General Patterns</strong></p>
 
   <ul>
-    <li><a href="/general/collecting_parameters.html">Collecting Parameters</a></li>
+    <li><a href="/general/collecting_parameters.html">Collecting Parameter</a></li>
     <li><a href="/general/command.html">Command</a></li>
     <li><a href="/general/null_object.html">Null Object</a></li>
     <li><a href="/general/pluggable_object.html">Pluggable Object</a></li>
     <li><a href="/general/pluggable_selector.html">Pluggable Selector</a></li>
-    <li><a href="/general/template_methods.html">Template Methods</a></li>
+    <li><a href="/general/template_methods.html">Template Method</a></li>
   </ul>
   
   <p><strong>Testing Patterns</strong></p>
@@ -37,42 +37,61 @@
   <p>made by <a href="https://jsrn.net">jsrn</a></p>
 </nav>
 
-    <main><h1>Collecting Parameters</h1>
+    <main><h1>Collecting Parameter</h1>
 
-<p>We might have a method that accumulates the results of a sequence of operations inside a variable and returns it.</p>
+<h2>What?</h2>
+
+<p>A mutable value that we pass from method to method, accumulating data as it goes.</p>
+
+<h2>Why?</h2>
+
+<p>Allows us to refactor a bulky method in which the results of multiple operations are collected in a single variable. This can be handy if we are sure that our method is violating the Single Responsibility Principle.</p>
 
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ScienceExperiment</span>
   <span class="k">def</span> <span class="nf">collect_results</span>
     <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="ss">:result_a</span>
-    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="ss">:result_b</span>
-    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="ss">:result_c</span>
+
+    <span class="k">if</span> <span class="n">test_validity_of_outliers?</span>
+      <span class="n">detected_outliers</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">outlier</span><span class="o">|</span>
+        <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="n">outlier</span> <span class="k">if</span> <span class="n">valid_outlier?</span><span class="p">(</span><span class="n">outlier</span><span class="p">)</span>
+      <span class="k">end</span>
+    <span class="k">end</span>
+
+    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="n">result_from_follow_up_check</span>
+
+    <span class="n">control_group</span><span class="p">.</span><span class="nf">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">control_group_result</span><span class="o">|</span>
+      <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="n">reformat_control_group_result</span><span class="p">(</span><span class="n">control_group_result</span><span class="p">)</span>
+    <span class="k">end</span>
+
     <span class="n">results</span>
   <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div>
+<h2>How?</h2>
 
-<p>This is okay for simple methods, but if we're collecting the results of more complex operations, we may wish to employ a Collecting Parameter.</p>
+<p>The above code is pretty messy. Let's apply the Collecting Parameter pattern.</p>
 
 <div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">ScienceExperimentWithCollectingParameter</span>
   <span class="k">def</span> <span class="nf">collect_results</span>
     <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">perform_complex_computation_a</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
-    <span class="n">perform_complex_computation_b</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
-    <span class="n">perform_complex_computation_c</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="n">collect_valid_outliers</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="n">collect_results_from_follow_up_check</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="n">collect_formatted_control_group_results</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
     <span class="n">results</span>
   <span class="k">end</span>
 
-  <span class="k">def</span> <span class="nf">perform_complex_computation_a</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
-    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="ss">:result_a</span>
+  <span class="kp">private</span>
+
+  <span class="k">def</span> <span class="nf">collect_valid_outliers</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="c1"># ... extracted code</span>
   <span class="k">end</span>
 
-  <span class="k">def</span> <span class="nf">perform_complex_computation_b</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
-    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="ss">:result_b</span>
+  <span class="k">def</span> <span class="nf">collect_results_from_follow_up_check</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="c1"># ... extracted code</span>
   <span class="k">end</span>
 
-  <span class="k">def</span> <span class="nf">perform_complex_computation_c</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
-    <span class="n">results</span> <span class="o">&lt;&lt;</span> <span class="ss">:result_c</span>
+  <span class="k">def</span> <span class="nf">collect_formatted_control_group_results</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="c1"># ... extracted code</span>
   <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div></main>
