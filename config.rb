@@ -42,6 +42,14 @@ helpers do
       "#{current_page.data.title} - Ruby Patterns"
     end
   end
+
+  def page_description
+    if current_page.path == 'index.html'
+      'Design and testing patterns for Ruby programmers.'
+    else
+      current_page.data.description
+    end
+  end
 end
 
 # Build-specific configuration
