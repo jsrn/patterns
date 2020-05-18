@@ -5,7 +5,6 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- Use the title from a page's frontmatter if it has one -->
     <title><%= page_title %></title>
     <%= stylesheet_link_tag "site" %>
     <meta name="twitter:site" content="@jsrndoftime">
@@ -13,6 +12,7 @@
     <meta name="twitter:title" content="<%= page_title %>">
     <meta name="twitter:description" content="<%= page_description %>">
     <meta name="twitter:card"  content="summary">
+    <meta name="description" content="<%= page_description %>">
   </head>
   <body>
     <%= partial "sidebar" %>
