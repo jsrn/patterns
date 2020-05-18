@@ -1,0 +1,334 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Use the title from a page's frontmatter if it has one -->
+    <title>Double Dispatch - Ruby Patterns</title>
+    <link href="/stylesheets/site.css" rel="stylesheet" />
+  </head>
+  <body>
+    <nav>
+  <ul>
+    <li class="sidebar-title"><a href="/">Ruby Patterns</a></li>
+  </ul>
+
+  <p><strong>General Patterns</strong></p>
+
+  <ul>
+    <li><a href="/general/collecting_parameters.html#main">Collecting Parameter</a></li>
+    <li><a href="/general/command.html#main">Command</a></li>
+    <li><a href="/general/double_dispatch.html#main">Double Dispatch</a></li>
+    <li><a href="/general/null_object.html#main">Null Object</a></li>
+    <li><a href="/general/pluggable_object.html#main">Pluggable Object</a></li>
+    <li><a href="/general/pluggable_selector.html#main">Pluggable Selector</a></li>
+    <li><a href="/general/template_methods.html#main">Template Method</a></li>
+  </ul>
+  
+  <p><strong>Testing Patterns</strong></p>
+
+  <ul>
+    <li><a href="/testing/crash_test_dummy.html#main">Crash Test Dummy</a></li>
+    <li><a href="/testing/self_shunt.html#main">Self Shunt</a></li>
+  </ul>
+
+  <p>made by <a href="https://jsrn.net">jsrn</a></p>
+</nav>
+
+    <main id="main"><h1>Double Dispatch</h1>
+
+<h2>What?</h2>
+
+<p>To properly understand Double Dispatch, it'll be useful to understand what is meant by Single Dispatch.</p>
+
+<p>You are probably used to looking at code such as the following.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">user</span><span class="p">.</span><span class="nf">validate_password</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+</code></pre></div>
+<p>In the above code, the specific method that ends up being executed depends on the runtime type of a single object: <code>user</code>.</p>
+
+<p>This is known as <em>single dispatch</em>.</p>
+
+<p>In a <em>multiple dispatch</em> system, the implementation of <code>validate_password</code> that ends up being invoked would depend on the runtume types of both <code>user</code> <strong>and</strong> <code>password</code>.</p>
+
+<p>When working with languages that don't directly support double dispatch (like Ruby), we can implement the Double Dispatch Pattern to gain the benefits.</p>
+
+<h2>Why?</h2>
+
+<p>The Double Dispatch Pattern is useful for scenarios where you have a set of classes, any one of which may have to interact with another. Imagine we're building a document display system where a number of objects may be rendered inside a number of media.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">LineGraph</span>
+  <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="n">medium</span><span class="p">)</span>
+    <span class="k">case</span> <span class="n">medium</span>
+    <span class="k">when</span> <span class="no">WordDoc</span>
+      <span class="c1"># ...</span>
+    <span class="k">when</span> <span class="no">Website</span>
+      <span class="c1"># ...</span>
+    <span class="k">when</span> <span class="no">Pdf</span>
+      <span class="c1"># ...</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">BarChart</span>
+  <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="n">medium</span><span class="p">)</span>
+    <span class="k">case</span> <span class="n">medium</span>
+    <span class="k">when</span> <span class="no">WordDoc</span>
+      <span class="c1"># ...</span>
+    <span class="k">when</span> <span class="no">Website</span>
+      <span class="c1"># ...</span>
+    <span class="k">when</span> <span class="no">Pdf</span>
+      <span class="c1"># ...</span>
+    <span class="k">end</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>The problem with the above is twofold:</p>
+
+<ol>
+  <li>Each object must know the rendering internals of multiple media.</li>
+  <li>If we add a new medium, all of our objects must be updated to account for it.</li>
+</ol>
+
+<p>Applying the Double Dispatch Pattern allows us to bring the rendering logic out of our objects and in to a more sensible place, as well as reducing the number of classes that must be edited if we add a new medium in which our objects can be displayed.</p>
+
+<h2>How?</h2>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># Our objects</span>
+<span class="k">class</span> <span class="nc">LineGraph</span>
+  <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="n">medium</span><span class="p">)</span>
+    <span class="n">medium</span><span class="p">.</span><span class="nf">render_line_graph</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">BarChart</span>
+  <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="n">medium</span><span class="p">)</span>
+    <span class="n">medium</span><span class="p">.</span><span class="nf">render_bar_chart</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="c1"># Our display media</span>
+<span class="k">class</span> <span class="nc">WordDoc</span>
+  <span class="k">def</span> <span class="nf">render_line_graph</span><span class="p">(</span><span class="n">line_graph</span><span class="p">)</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">render_bar_chart</span><span class="p">(</span><span class="n">line_graph</span><span class="p">)</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">Website</span>
+  <span class="k">def</span> <span class="nf">render_line_graph</span><span class="p">(</span><span class="n">line_graph</span><span class="p">)</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">render_bar_chart</span><span class="p">(</span><span class="n">line_graph</span><span class="p">)</span>
+    <span class="c1"># ...</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div></main>
+  </body>
+  <style>
+    .highlight table td { padding: 5px; }
+.highlight table pre { margin: 0; }
+.highlight .gh {
+  color: #999999;
+}
+.highlight .sr {
+  color: #f6aa11;
+}
+.highlight .go {
+  color: #888888;
+}
+.highlight .gp {
+  color: #555555;
+}
+.highlight .gs {
+}
+.highlight .gu {
+  color: #aaaaaa;
+}
+.highlight .nb {
+  color: #f6aa11;
+}
+.highlight .cm {
+  color: #75715e;
+}
+.highlight .cp {
+  color: #75715e;
+}
+.highlight .c1 {
+  color: #75715e;
+}
+.highlight .cs {
+  color: #75715e;
+}
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cpf {
+  color: #75715e;
+}
+.highlight .err {
+  color: #960050;
+}
+.highlight .gr {
+  color: #960050;
+}
+.highlight .gt {
+  color: #960050;
+}
+.highlight .gd {
+  color: #49483e;
+}
+.highlight .gi {
+  color: #49483e;
+}
+.highlight .ge {
+  color: #49483e;
+}
+.highlight .kc {
+  color: #66d9ef;
+}
+.highlight .kd {
+  color: #66d9ef;
+}
+.highlight .kr {
+  color: #66d9ef;
+}
+.highlight .no {
+  color: #66d9ef;
+}
+.highlight .kt {
+  color: #66d9ef;
+}
+.highlight .mf {
+  color: #ae81ff;
+}
+.highlight .mh {
+  color: #ae81ff;
+}
+.highlight .il {
+  color: #ae81ff;
+}
+.highlight .mi {
+  color: #ae81ff;
+}
+.highlight .mo {
+  color: #ae81ff;
+}
+.highlight .m, .highlight .mb, .highlight .mx {
+  color: #ae81ff;
+}
+.highlight .sc {
+  color: #ae81ff;
+}
+.highlight .se {
+  color: #ae81ff;
+}
+.highlight .ss {
+  color: #ae81ff;
+}
+.highlight .sd {
+  color: #e6db74;
+}
+.highlight .s2 {
+  color: #e6db74;
+}
+.highlight .sb {
+  color: #e6db74;
+}
+.highlight .sh {
+  color: #e6db74;
+}
+.highlight .si {
+  color: #e6db74;
+}
+.highlight .sx {
+  color: #e6db74;
+}
+.highlight .s1 {
+  color: #e6db74;
+}
+.highlight .s, .highlight .sa, .highlight .dl {
+  color: #e6db74;
+}
+.highlight .na {
+  color: #a6e22e;
+}
+.highlight .nc {
+  color: #a6e22e;
+}
+.highlight .nd {
+  color: #a6e22e;
+}
+.highlight .ne {
+  color: #a6e22e;
+}
+.highlight .nf, .highlight .fm {
+  color: #a6e22e;
+}
+.highlight .vc {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .nn {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .nl {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .ni {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .bp {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .vg {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .vi {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .nv, .highlight .vm {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .w {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .n, .highlight .py, .highlight .nx {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .ow {
+  color: #f92672;
+}
+.highlight .nt {
+  color: #f92672;
+}
+.highlight .k, .highlight .kv {
+  color: #f92672;
+}
+.highlight .kn {
+  color: #f92672;
+}
+.highlight .kp {
+  color: #f92672;
+}
+.highlight .o {
+  color: #f92672;
+}
+  </style>
+</html>

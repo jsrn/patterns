@@ -1,0 +1,102 @@
+---
+title: Double Dispatch
+---
+
+<h1>Double Dispatch</h1>
+
+<h2>What?</h2>
+
+<p>To properly understand Double Dispatch, it'll be useful to understand what is meant by Single Dispatch.</p>
+
+<p>You are probably used to looking at code such as the following.</p>
+
+<% code("ruby") do %>
+user.validate_password(password)
+<% end %>
+
+<p>In the above code, the specific method that ends up being executed depends on the runtime type of a single object: <code>user</code>.</p>
+
+<p>This is known as <em>single dispatch</em>.</p>
+
+<p>In a <em>multiple dispatch</em> system, the implementation of <code>validate_password</code> that ends up being invoked would depend on the runtume types of both <code>user</code> <strong>and</strong> <code>password</code>.</p>
+
+<p>When working with languages that don't directly support double dispatch (like Ruby), we can implement the Double Dispatch Pattern to gain the benefits.</p>
+
+<h2>Why?</h2>
+
+<p>The Double Dispatch Pattern is useful for scenarios where you have a set of classes, any one of which may have to interact with another. Imagine we're building a document display system where a number of objects may be rendered inside a number of media.</p>
+
+<% code("ruby") do %>
+class LineGraph
+  def render(medium)
+    case medium
+    when WordDoc
+      # ...
+    when Website
+      # ...
+    when Pdf
+      # ...
+    end
+  end
+end
+
+class BarChart
+  def render(medium)
+    case medium
+    when WordDoc
+      # ...
+    when Website
+      # ...
+    when Pdf
+      # ...
+    end
+  end
+end
+<% end %>
+
+<p>The problem with the above is twofold:</p>
+
+<ol>
+  <li>Each object must know the rendering internals of multiple media.</li>
+  <li>If we add a new medium, all of our objects must be updated to account for it.</li>
+</ol>
+
+<p>Applying the Double Dispatch Pattern allows us to bring the rendering logic out of our objects and in to a more sensible place, as well as reducing the number of classes that must be edited if we add a new medium in which our objects can be displayed.</p>
+
+<h2>How?</h2>
+
+<% code("ruby") do %>
+# Our objects
+class LineGraph
+  def render(medium)
+    medium.render_line_graph(self)
+  end
+end
+
+class BarChart
+  def render(medium)
+    medium.render_bar_chart(self)
+  end
+end
+
+# Our display media
+class WordDoc
+  def render_line_graph(line_graph)
+    # ...
+  end
+
+  def render_bar_chart(line_graph)
+    # ...
+  end
+end
+
+class Website
+  def render_line_graph(line_graph)
+    # ...
+  end
+
+  def render_bar_chart(line_graph)
+    # ...
+  end
+end
+<% end %>
