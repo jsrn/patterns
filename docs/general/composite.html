@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>The Composite Pattern - Ruby Patterns</title>
+    <link href="/stylesheets/site.css" rel="stylesheet" />
+    <meta name="twitter:site" content="@jsrndoftime">
+    <meta name="twitter:creator" content="@jsrndoftime">
+    <meta name="twitter:title" content="The Composite Pattern - Ruby Patterns">
+    <meta name="twitter:description" content="Storing operations in reusable objects.">
+    <meta name="twitter:card"  content="summary">
+    <meta name="description" content="Storing operations in reusable objects.">
+  </head>
+  <body>
+    <nav>
+  <ul>
+    <li class="sidebar-title"><a href="/">Ruby Patterns</a></li>
+  </ul>
+
+  <p><strong>General Patterns</strong></p>
+
+  <ul>
+    <li><a href="/general/collecting_parameters.html#main">Collecting Parameter</a></li>
+    <li><a href="/general/command.html#main">Command</a></li>
+    <li><a href="/general/composite.html#main">Composite</a></li>
+    <li><a href="/general/double_dispatch.html#main">Double Dispatch</a></li>
+    <li><a href="/general/null_object.html#main">Null Object</a></li>
+    <li><a href="/general/pluggable_object.html#main">Pluggable Object</a></li>
+    <li><a href="/general/pluggable_selector.html#main">Pluggable Selector</a></li>
+    <li><a href="/general/template_methods.html#main">Template Method</a></li>
+  </ul>
+
+  <p><strong>Testing Patterns</strong></p>
+
+  <ul>
+    <li><a href="/testing/crash_test_dummy.html#main">Crash Test Dummy</a></li>
+    <li><a href="/testing/self_shunt.html#main">Self Shunt</a></li>
+  </ul>
+
+  <p>notes by <a href="https://jsrn.net">jsrn</a>. please send any comments or feedback to <a href="mailto:jsrn@hey.com">jsrn@hey.com</a></p>
+</nav>
+
+    <main id="main"><h1>The Composite Pattern</h1>
+
+<h2>What?</h2>
+
+<p>Once applied, the Composite Pattern allows you to operate on objects of different types within a tree structure using a single interface.</p>
+
+<div class="highlight"><pre class="highlight plaintext"><code>         Folder
+        /      \
+   Folder      Folder
+  /     \      /    \
+File   File  File   File
+</code></pre></div>
+<h2>Why?</h2>
+
+<p>By using a single interface to operate on objects of different types, you can simplify your client code by making it type agnostic.</p>
+
+<p>In the above diagram, you might wish to ask any object its <code>size</code> without worrying about whether that size is directly returned from a File object or recursively calculated from the contents of a folder.</p>
+
+<h2>How?</h2>
+
+<p>Firstly, we need to define a common interface that will be implemented by all members of the tree structure, whether they are primitives (Files) or containers (folders). Ideally, this interface should implement as many of the common operations as possible, minimising the amount of behaviour that will need to be implemented by subclasses.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Component</span>
+  <span class="k">def</span> <span class="nf">size</span>
+    <span class="k">raise</span> <span class="no">NotImplementedError</span><span class="p">.</span><span class="nf">new</span><span class="p">,</span> <span class="s2">"#size is not implemented on </span><span class="si">#{</span><span class="nb">self</span><span class="p">.</span><span class="nf">class</span><span class="si">}</span><span class="s2">"</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">children</span>
+    <span class="p">[]</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">child</span><span class="p">);</span> <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="n">child</span><span class="p">);</span> <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">get_child</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+    <span class="kp">nil</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>We can then implement the behaviour in our composite Folder class. Specifically, we implement the behaviour responsible for operating on the list of the object's direct children, as well as the behaviour that delegates the calculation of the folder's size to that list of children.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Folder</span>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@children</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">size</span>
+    <span class="n">children</span><span class="p">.</span><span class="nf">collect</span><span class="p">(</span><span class="o">&amp;</span><span class="ss">:size</span><span class="p">).</span><span class="nf">sum</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">children</span>
+    <span class="vi">@children</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+    <span class="vi">@children</span> <span class="o">&lt;&lt;</span> <span class="n">child</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+    <span class="vi">@children</span><span class="p">.</span><span class="nf">delete</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">get_child</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+    <span class="n">children</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Finally, we implement the operation on our leaf File class.</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">File</span>
+  <span class="k">def</span> <span class="nf">size</span>
+    <span class="n">size_on_disk</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+<p>Our client might then use the code like:</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="n">documents</span> <span class="o">=</span> <span class="no">Folder</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">documents</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="no">File</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span>
+<span class="n">documents</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="no">File</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span>
+
+<span class="n">baking_recipes</span> <span class="o">=</span> <span class="no">Folder</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">baking_recipes</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="no">File</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span>
+
+<span class="n">vegetable_recipes</span> <span class="o">=</span> <span class="no">Folder</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">vegetable_recipes</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="no">File</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span>
+<span class="n">vegetable_recipes</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="no">File</span><span class="p">.</span><span class="nf">new</span><span class="p">)</span>
+
+<span class="n">all_recipes</span> <span class="o">=</span> <span class="no">Folder</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">all_recipes</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="n">baking_recipes</span><span class="p">)</span>
+<span class="n">all_recipes</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="n">vegetable_recipes</span><span class="p">)</span>
+
+<span class="n">file_system</span> <span class="o">=</span> <span class="no">Folder</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">file_system</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="n">documents</span><span class="p">)</span>
+<span class="n">file_system</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="n">all_recipes</span><span class="p">)</span>
+
+<span class="c1"># This creates the following structure:</span>
+<span class="c1">#</span>
+<span class="c1"># file_system</span>
+<span class="c1"># |- documents</span>
+<span class="c1">#    |- file</span>
+<span class="c1">#    |- file</span>
+<span class="c1"># |- all_recipes</span>
+<span class="c1">#    |- baking_recipes</span>
+<span class="c1">#    |  |- file</span>
+<span class="c1">#    |- vegetable_recipes</span>
+<span class="c1">#       |- file</span>
+<span class="c1">#       |- file</span>
+</code></pre></div>
+<p>Our client can now call <code>size</code> on any object in the above structure without regard for the object's type.</p>
+</main>
+  </body>
+  <style>
+    .highlight table td { padding: 5px; }
+.highlight table pre { margin: 0; }
+.highlight .gh {
+  color: #999999;
+}
+.highlight .sr {
+  color: #f6aa11;
+}
+.highlight .go {
+  color: #888888;
+}
+.highlight .gp {
+  color: #555555;
+}
+.highlight .gs {
+}
+.highlight .gu {
+  color: #aaaaaa;
+}
+.highlight .nb {
+  color: #f6aa11;
+}
+.highlight .cm {
+  color: #75715e;
+}
+.highlight .cp {
+  color: #75715e;
+}
+.highlight .c1 {
+  color: #75715e;
+}
+.highlight .cs {
+  color: #75715e;
+}
+.highlight .c, .highlight .ch, .highlight .cd, .highlight .cpf {
+  color: #75715e;
+}
+.highlight .err {
+  color: #960050;
+}
+.highlight .gr {
+  color: #960050;
+}
+.highlight .gt {
+  color: #960050;
+}
+.highlight .gd {
+  color: #49483e;
+}
+.highlight .gi {
+  color: #49483e;
+}
+.highlight .ge {
+  color: #49483e;
+}
+.highlight .kc {
+  color: #66d9ef;
+}
+.highlight .kd {
+  color: #66d9ef;
+}
+.highlight .kr {
+  color: #66d9ef;
+}
+.highlight .no {
+  color: #66d9ef;
+}
+.highlight .kt {
+  color: #66d9ef;
+}
+.highlight .mf {
+  color: #ae81ff;
+}
+.highlight .mh {
+  color: #ae81ff;
+}
+.highlight .il {
+  color: #ae81ff;
+}
+.highlight .mi {
+  color: #ae81ff;
+}
+.highlight .mo {
+  color: #ae81ff;
+}
+.highlight .m, .highlight .mb, .highlight .mx {
+  color: #ae81ff;
+}
+.highlight .sc {
+  color: #ae81ff;
+}
+.highlight .se {
+  color: #ae81ff;
+}
+.highlight .ss {
+  color: #ae81ff;
+}
+.highlight .sd {
+  color: #e6db74;
+}
+.highlight .s2 {
+  color: #e6db74;
+}
+.highlight .sb {
+  color: #e6db74;
+}
+.highlight .sh {
+  color: #e6db74;
+}
+.highlight .si {
+  color: #e6db74;
+}
+.highlight .sx {
+  color: #e6db74;
+}
+.highlight .s1 {
+  color: #e6db74;
+}
+.highlight .s, .highlight .sa, .highlight .dl {
+  color: #e6db74;
+}
+.highlight .na {
+  color: #a6e22e;
+}
+.highlight .nc {
+  color: #a6e22e;
+}
+.highlight .nd {
+  color: #a6e22e;
+}
+.highlight .ne {
+  color: #a6e22e;
+}
+.highlight .nf, .highlight .fm {
+  color: #a6e22e;
+}
+.highlight .vc {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .nn {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .nl {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .ni {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .bp {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .vg {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .vi {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .nv, .highlight .vm {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .w {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .n, .highlight .py, .highlight .nx {
+  color: #ffffff;
+  background-color: #272822;
+}
+.highlight .ow {
+  color: #f92672;
+}
+.highlight .nt {
+  color: #f92672;
+}
+.highlight .k, .highlight .kv {
+  color: #f92672;
+}
+.highlight .kn {
+  color: #f92672;
+}
+.highlight .kp {
+  color: #f92672;
+}
+.highlight .o {
+  color: #f92672;
+}
+  </style>
+</html>

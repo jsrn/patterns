@@ -1,0 +1,126 @@
+---
+title: The Composite Pattern
+description: Storing operations in reusable objects.
+---
+
+<h1>The Composite Pattern</h1>
+
+<h2>What?</h2>
+
+<p>Once applied, the Composite Pattern allows you to operate on objects of different types within a tree structure using a single interface.</p>
+
+<% code("text") do %>
+         Folder
+        /      \
+   Folder      Folder
+  /     \      /    \
+File   File  File   File
+<% end %>
+
+<h2>Why?</h2>
+
+<p>By using a single interface to operate on objects of different types, you can simplify your client code by making it type agnostic.</p>
+
+<p>In the above diagram, you might wish to ask any object its <code>size</code> without worrying about whether that size is directly returned from a File object or recursively calculated from the contents of a folder.</p>
+
+<h2>How?</h2>
+
+<p>Firstly, we need to define a common interface that will be implemented by all members of the tree structure, whether they are primitives (Files) or containers (folders). Ideally, this interface should implement as many of the common operations as possible, minimising the amount of behaviour that will need to be implemented by subclasses.</p>
+
+<% code("ruby") do %>
+class Component
+  def size
+    raise NotImplementedError.new, "#size is not implemented on #{self.class}"
+  end
+
+  def children
+    []
+  end
+
+  def add(child); end
+
+  def remove(child); end
+
+  def get_child(index)
+    nil
+  end
+end
+<% end %>
+
+<p>We can then implement the behaviour in our composite Folder class. Specifically, we implement the behaviour responsible for operating on the list of the object's direct children, as well as the behaviour that delegates the calculation of the folder's size to that list of children.</p>
+
+<% code("ruby") do %>
+class Folder
+  def initialize
+    @children = []
+  end
+
+  def size
+    children.collect(&:size).sum
+  end
+
+  def children
+    @children
+  end
+
+  def add(child)
+    @children << child
+  end
+
+  def remove(child)
+    @children.delete(child)
+  end
+
+  def get_child(index)
+    children[index]
+  end
+end
+<% end %>
+
+<p>Finally, we implement the operation on our leaf File class.</p>
+
+<% code("ruby") do %>
+class File
+  def size
+    size_on_disk
+  end
+end
+<% end %>
+
+<p>Our client might then use the code like:</p>
+
+<% code("ruby") do %>
+documents = Folder.new
+documents.add(File.new)
+documents.add(File.new)
+
+baking_recipes = Folder.new
+baking_recipes.add(File.new)
+
+vegetable_recipes = Folder.new
+vegetable_recipes.add(File.new)
+vegetable_recipes.add(File.new)
+
+all_recipes = Folder.new
+all_recipes.add(baking_recipes)
+all_recipes.add(vegetable_recipes)
+
+file_system = Folder.new
+file_system.add(documents)
+file_system.add(all_recipes)
+
+# This creates the following structure:
+#
+# file_system
+# |- documents
+#    |- file
+#    |- file
+# |- all_recipes
+#    |- baking_recipes
+#    |  |- file
+#    |- vegetable_recipes
+#       |- file
+#       |- file
+<% end %>
+
+<p>Our client can now call <code>size</code> on any object in the above structure without regard for the object's type.</p>

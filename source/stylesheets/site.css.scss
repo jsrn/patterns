@@ -1,13 +1,15 @@
 :root {
   --white: rgb(255, 253, 253);
+  --offblack: #333;
   --jsrnorange: #D1442F;
+  --lightorange: rgb(255, 246, 246);
 }
 
 html, body { padding: 0; margin: 0; }
 
 body {
-  background-color: var(--jsrnorange);
-  color: #333;
+  background-color: var(--lightorange);
+  color: var(--offblack);
   font-family: -apple-system, BlinkMacSystemFont, "Avenir Next", "Avenir",
     "Segoe UI", "Lucida Grande", "Helvetica Neue", "Helvetica", "Fira Sans",
     "Roboto", "Noto", "Droid Sans", "Cantarell", "Oxygen", "Ubuntu",
@@ -32,7 +34,8 @@ body {
 nav {
   min-height: 100vh;
   padding: 2em;
-  color: var(--white);
+  color: var(--offblack);
+  max-width: 20ch;
 
   a {
     color: inherit;
@@ -61,6 +64,10 @@ main {
 
 main p {
   max-width: 30em;
+  line-height: 1.5em;
+}
+
+nav p {
   line-height: 1.5em;
 }
 
