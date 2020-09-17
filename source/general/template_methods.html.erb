@@ -24,12 +24,6 @@ class BaseTest
     run_test
     tear_down
   end
-
-  # If we want to ensure a certain step is implemented, we can raise an exception
-  # if that method is called from the base class.
-  def run_test
-    raise NotImplementedError
-  end
 end
 
 class OurTest < BaseTest
