@@ -5,14 +5,14 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Null Object - Ruby Patterns</title>
+    <title>The Adapter Pattern - Ruby Patterns</title>
     <link href="/stylesheets/site.css" rel="stylesheet" />
     <meta name="twitter:site" content="@jsrndoftime">
     <meta name="twitter:creator" content="@jsrndoftime">
-    <meta name="twitter:title" content="Null Object - Ruby Patterns">
-    <meta name="twitter:description" content="Tidying conditional logic with a default object.">
+    <meta name="twitter:title" content="The Adapter Pattern - Ruby Patterns">
+    <meta name="twitter:description" content="Wrapping objects in other objects to provide a new interface to old functionality.">
     <meta name="twitter:card"  content="summary">
-    <meta name="description" content="Tidying conditional logic with a default object.">
+    <meta name="description" content="Wrapping objects in other objects to provide a new interface to old functionality.">
   </head>
   <body>
     <nav>
@@ -54,64 +54,75 @@
   <p>notes by <a href="https://jsrn.net">jsrn</a>. please send any comments or feedback to <a href="mailto:jsrn@hey.com">jsrn@hey.com</a></p>
 </nav>
 
-    <main id="main"><h1>Null Object</h1>
+    <main id="main"><h1>The Adapter Pattern</h1>
 
-<h2>What?</h2>
+<p>You may be called upon to use an object in such a way that defies the expectations of either the object in question or the system you are developing. There are a number of reasons this might be the case:</p>
 
-<p>Replace conditional checks for <code class="inline-code">nil</code> with an object that returns default data or <code class="inline-code">nil</code>.
+<ul>
+  <li>The object's interface differs greatly from that of other, similar objects in your system.</li>
+  <li>The object's interface is way more complicated than you have any need for.</li>
+  <li>I want to limit the scope for required changes if I replace this object with a different one in the future.</li>
+</ul>
 
-<h2>Why?</h2>
+<p>You can solve this by creating an <em>adapter</em> that provides a more agreeable interface between the object in question and the rest of the system.</p>
 
-<p>To tidy up conditional logic in our code.</p>
+<p>Let's take for example a system that concerns itself with the accurate measurement of animals.</p>
 
-<p>Imagine you're building a message board. Messages are posted by registered users, but if a user should delete their account, the message is preserved and displayed without any identifying information.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Slug</span>
+  <span class="k">def</span> <span class="nf">length_in_millis</span>
+    <span class="mi">37</span>
+  <span class="k">end</span>
+<span class="k">end</span>
 
-<p>Our view code may be scattered with helper methods like the following:</p>
-
-<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">author_username</span><span class="p">(</span><span class="n">post</span><span class="p">)</span>
-  <span class="k">if</span> <span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">present?</span>
-    <span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">username</span>
-  <span class="k">else</span>
-    <span class="s1">'Deleted user'</span>
+<span class="k">class</span> <span class="nc">Antelope</span>
+  <span class="k">def</span> <span class="nf">length_in_millis</span>
+    <span class="mi">2400</span>
   <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div>
-<p>The more attributes of the user that we're displaying in the page, the more conditional statements we have checking for the existence of said user.</p>
+<p>As luck would have it, some friendly American programmers/naturalists have written their own package for their own system that concerns itself with the accurate measurement of animals. They've kindly given us access to it so we can make use of it in our application.</p>
 
-<h2>How?</h2>
-
-<p>How might we describe a user that no longer exists? We would like them to return some sensible data about what such a user might be, and if we ask them anything else that we might ask of an existing user, we at least want the system to <em>not crash</em>.</p>
-
-<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">NullUser</span>
-  <span class="k">def</span> <span class="nf">username</span>
-    <span class="s1">'Deleted user'</span>
-  <span class="k">end</span>
-
-  <span class="k">def</span> <span class="nf">method_missing</span><span class="p">(</span><span class="o">*</span><span class="p">)</span>
-    <span class="kp">nil</span>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">GrizzlyBear</span>
+  <span class="k">def</span> <span class="nf">length_in_inches</span>
+    <span class="mf">78.7</span>
   <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div>
-<p>And what if our instances of <code class="inline-code">Post</code> had an author, even when they didn't?</p>
+<p><em>Oh.</em> They've given us access to their animal classes, but it's all in Imperial. Well, there are a couple of things we can do here. We can create an adapter class that allows us to decorate an animal with the desired interface:</p>
 
-<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">Post</span>
-  <span class="k">def</span> <span class="nf">author</span>
-    <span class="nb">self</span><span class="p">[</span><span class="ss">:author</span><span class="p">]</span> <span class="o">||</span> <span class="no">NullUser</span><span class="p">.</span><span class="nf">new</span>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">AnimalAdapter</span>
+  <span class="no">MILLIMETRES_IN_AN_INCH</span> <span class="o">=</span> <span class="mi">25</span>
+
+  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="n">animal</span><span class="p">)</span>
+    <span class="vi">@animal</span> <span class="o">=</span> <span class="n">animal</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">length_in_millis</span>
+    <span class="vi">@animal</span><span class="p">.</span><span class="nf">length_in_inches</span> <span class="o">*</span> <span class="no">MILLIMETRES_IN_AN_INCH</span>
   <span class="k">end</span>
 <span class="k">end</span>
-</code></pre></div>
-<p>Now the logic towards our view level becomes considerably more simple.</p>
 
-<div class="highlight"><pre class="highlight ruby"><code><span class="k">def</span> <span class="nf">author_username</span><span class="p">(</span><span class="n">post</span><span class="p">)</span>
-  <span class="n">post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">username</span>
+<span class="n">bear</span> <span class="o">=</span> <span class="no">GrizzlyBear</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">adapted_bear</span> <span class="o">=</span> <span class="no">AnimalAdapter</span><span class="p">.</span><span class="nf">new</span><span class="p">(</span><span class="n">bear</span><span class="p">)</span>
+<span class="n">adapted_bear</span><span class="p">.</span><span class="nf">length_in_millis</span>
+<span class="c1">#=&gt; 1967.5</span>
+</code></pre></div>
+<p>We can extend the class directly to layer our desired interface over existing functionality:</p>
+
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">AdaptedBear</span> <span class="o">&lt;</span> <span class="no">GrizzlyBear</span>
+  <span class="no">MILLIMETRES_IN_AN_INCH</span> <span class="o">=</span> <span class="mi">25</span>
+
+  <span class="k">def</span> <span class="nf">length_in_millis</span>
+    <span class="n">length_in_inches</span> <span class="o">*</span> <span class="no">MILLIMETRES_IN_AN_INCH</span>
+  <span class="k">end</span>
 <span class="k">end</span>
-</code></pre></div>
-<p>In fact, our helper method is now so simple that there is a strong argument for removing it entirely and calling our username method directly from the view.
 
-<div class="highlight"><pre class="highlight erb"><code><span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"post"</span><span class="nt">&gt;</span>
-  <span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">"author"</span><span class="nt">&gt;</span><span class="cp">&lt;%=</span> <span class="vi">@post</span><span class="p">.</span><span class="nf">author</span><span class="p">.</span><span class="nf">username</span> <span class="cp">%&gt;</span><span class="nt">&lt;/span&gt;</span>
-<span class="nt">&lt;/div&gt;</span>
-</code></pre></div></main>
+<span class="n">bear</span> <span class="o">=</span> <span class="no">AdaptedBear</span><span class="p">.</span><span class="nf">new</span>
+<span class="n">bear</span><span class="p">.</span><span class="nf">length_in_millis</span>
+<span class="c1">#=&gt; 1967.5</span>
+</code></pre></div>
+
+</main>
   </body>
   <style>
     .highlight table td { padding: 5px; }

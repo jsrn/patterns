@@ -1,0 +1,81 @@
+---
+title: The Adapter Pattern
+description: Wrapping objects in other objects to provide a new interface to old functionality.
+---
+
+<h1>The Adapter Pattern</h1>
+
+<p>You may be called upon to use an object in such a way that defies the expectations of either the object in question or the system you are developing. There are a number of reasons this might be the case:</p>
+
+<ul>
+  <li>The object's interface differs greatly from that of other, similar objects in your system.</li>
+  <li>The object's interface is way more complicated than you have any need for.</li>
+  <li>I want to limit the scope for required changes if I replace this object with a different one in the future.</li>
+</ul>
+
+<p>You can solve this by creating an <em>adapter</em> that provides a more agreeable interface between the object in question and the rest of the system.</p>
+
+<p>Let's take for example a system that concerns itself with the accurate measurement of animals.</p>
+
+<% code("ruby") do %>
+class Slug
+  def length_in_millis
+    37
+  end
+end
+
+class Antelope
+  def length_in_millis
+    2400
+  end
+end
+<% end %>
+
+<p>As luck would have it, some friendly American programmers/naturalists have written their own package for their own system that concerns itself with the accurate measurement of animals. They've kindly given us access to it so we can make use of it in our application.</p>
+
+<% code("ruby") do %>
+class GrizzlyBear
+  def length_in_inches
+    78.7
+  end
+end
+<% end %>
+
+<p><em>Oh.</em> They've given us access to their animal classes, but it's all in Imperial. Well, there are a couple of things we can do here. We can create an adapter class that allows us to decorate an animal with the desired interface:</p>
+
+<% code("ruby") do %>
+class AnimalAdapter
+  MILLIMETRES_IN_AN_INCH = 25
+
+  def initialize(animal)
+    @animal = animal
+  end
+
+  def length_in_millis
+    @animal.length_in_inches * MILLIMETRES_IN_AN_INCH
+  end
+end
+
+bear = GrizzlyBear.new
+adapted_bear = AnimalAdapter.new(bear)
+adapted_bear.length_in_millis
+#=> 1967.5
+<% end %>
+
+<p>We can extend the class directly to layer our desired interface over existing functionality:</p>
+
+<% code("ruby") do %>
+class AdaptedBear < GrizzlyBear
+  MILLIMETRES_IN_AN_INCH = 25
+
+  def length_in_millis
+    length_in_inches * MILLIMETRES_IN_AN_INCH
+  end
+end
+
+bear = AdaptedBear.new
+bear.length_in_millis
+#=> 1967.5
+<% end %>
+
+
