@@ -1,0 +1,44 @@
+---
+title: The State Pattern
+description: Avoid difficult to maintain conditional logic by delegating behaviour to an appropriate class that represents the object's state.
+---
+
+<h1>The State Pattern</h1>
+
+<p>If you have an object whose behaviour depends on one of several states, you may end up with several very similar conditionals sprinkled throughout the class.</p>
+
+<p>The State Pattern provides a mechanism for removing this duplicate conditional code by maintaining a reference to an object referencing the current state and delegating state-specific behaviour to that object.</p>
+
+<% code("ruby") do %>
+class TCPConnection
+  attr_accessor :state
+
+  def initialize
+    @state = TCPClosed.instance
+  end
+
+  def open
+    @state.open(self)
+  end
+
+  def close
+    @state.close(self)
+  end
+end
+
+class TCPClosed
+  def open(connection)
+    connection.state = TCPOpen.instance
+  end
+
+  def close(connection); end
+end
+
+class TCPOpen
+  def open(connection); end
+
+  def close(connection)
+    connection.state = TCPClosed.instance
+  end
+end
+<% end %>

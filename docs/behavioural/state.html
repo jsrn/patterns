@@ -5,14 +5,14 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Self Shunt - Ruby Patterns</title>
+    <title>The State Pattern - Ruby Patterns</title>
     <link href="/stylesheets/site.css" rel="stylesheet" />
     <meta name="twitter:site" content="@jsrndoftime">
     <meta name="twitter:creator" content="@jsrndoftime">
-    <meta name="twitter:title" content="Self Shunt - Ruby Patterns">
-    <meta name="twitter:description" content="Simplying test setup by using the test itself as a mocked object.">
+    <meta name="twitter:title" content="The State Pattern - Ruby Patterns">
+    <meta name="twitter:description" content="Avoid difficult to maintain conditional logic by delegating behaviour to an appropriate class that represents the object's state.">
     <meta name="twitter:card"  content="summary">
-    <meta name="description" content="Simplying test setup by using the test itself as a mocked object.">
+    <meta name="description" content="Avoid difficult to maintain conditional logic by delegating behaviour to an appropriate class that represents the object's state.">
   </head>
   <body>
     <nav>
@@ -55,51 +55,41 @@
   <p>notes by <a href="https://jsrn.net">jsrn</a>. please send any comments or feedback to <a href="mailto:jsrn@hey.com">jsrn@hey.com</a></p>
 </nav>
 
-    <main id="main"><h1>Self Shunt</h1>
+    <main id="main"><h1>The State Pattern</h1>
 
-<p>The Self Shunt Pattern allows us to turn our test class itself into the mock object we pass to our object under test.</p>
+<p>If you have an object whose behaviour depends on one of several states, you may end up with several very similar conditionals sprinkled throughout the class.</p>
 
-<h2>Why?</h2>
+<p>The State Pattern provides a mechanism for removing this duplicate conditional code by maintaining a reference to an object referencing the current state and delegating state-specific behaviour to that object.</p>
 
-<p>If we are testing object A and want to ensure that it performs the appropriate actions on object B, we might construct a mock B to pass to A.</p>
+<div class="highlight"><pre class="highlight ruby"><code><span class="k">class</span> <span class="nc">TCPConnection</span>
+  <span class="nb">attr_accessor</span> <span class="ss">:state</span>
 
-<p>We can reduce the complexity of our test and the number of objects required by ensuring that our test itself implements the interface we would expect of B, and then pass <code class="inline-code">self</code> to A.</p>
+  <span class="k">def</span> <span class="nf">initialize</span>
+    <span class="vi">@state</span> <span class="o">=</span> <span class="no">TCPClosed</span><span class="p">.</span><span class="nf">instance</span>
+  <span class="k">end</span>
 
-<h2>How?</h2>
+  <span class="k">def</span> <span class="nf">open</span>
+    <span class="vi">@state</span><span class="p">.</span><span class="nf">open</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span>
+  <span class="k">end</span>
 
-<div class="highlight"><pre class="highlight ruby"><code><span class="c1"># The class that we're trying to test. We want to ensure that when passed an</span>
-<span class="c1"># object which adheres to the loggable interface, the `write_to_log` method</span>
-<span class="c1"># adds a log line to the logger object.</span>
-<span class="k">class</span> <span class="nc">SomeClass</span>
-  <span class="k">def</span> <span class="nf">write_to_log</span><span class="p">(</span><span class="n">logger</span><span class="p">,</span> <span class="n">log_line</span><span class="p">)</span>
-    <span class="n">logger</span><span class="p">.</span><span class="nf">add</span><span class="p">(</span><span class="n">log_line</span><span class="p">)</span> 
+  <span class="k">def</span> <span class="nf">close</span>
+    <span class="vi">@state</span><span class="p">.</span><span class="nf">close</span><span class="p">(</span><span class="nb">self</span><span class="p">)</span>
   <span class="k">end</span>
 <span class="k">end</span>
 
-<span class="c1"># This defines the behaviour of the logger object, extracted to a module for</span>
-<span class="c1"># convenience. In a real example, we might not be so lucky to have everything</span>
-<span class="c1"># wrapped into a little bundle for us, but hey.</span>
-<span class="k">module</span> <span class="nn">Loggable</span>
-  <span class="nb">attr_reader</span> <span class="ss">:lines</span>
-
-  <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">log_line</span><span class="p">)</span>
-    <span class="vi">@lines</span> <span class="o">||=</span> <span class="p">[]</span>
-    <span class="vi">@lines</span> <span class="o">&lt;&lt;</span> <span class="n">log_line</span>
+<span class="k">class</span> <span class="nc">TCPClosed</span>
+  <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+    <span class="n">connection</span><span class="p">.</span><span class="nf">state</span> <span class="o">=</span> <span class="no">TCPOpen</span><span class="p">.</span><span class="nf">instance</span>
   <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="n">connection</span><span class="p">);</span> <span class="k">end</span>
 <span class="k">end</span>
 
-<span class="k">class</span> <span class="nc">Logger</span>
-  <span class="kp">include</span> <span class="no">Loggable</span>  
-<span class="k">end</span>
+<span class="k">class</span> <span class="nc">TCPOpen</span>
+  <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="n">connection</span><span class="p">);</span> <span class="k">end</span>
 
-
-<span class="no">RSpec</span><span class="p">.</span><span class="nf">describe</span> <span class="no">SomeClass</span> <span class="k">do</span>
-  <span class="kp">include</span> <span class="no">Loggable</span>
-
-  <span class="n">it</span> <span class="s1">'uses the self shunt pattern to make an object under test interact directly with the test class'</span> <span class="k">do</span>
-    <span class="n">object_under_test</span> <span class="o">=</span> <span class="no">SomeClass</span><span class="p">.</span><span class="nf">new</span>
-    <span class="n">object_under_test</span><span class="p">.</span><span class="nf">write_to_log</span><span class="p">(</span><span class="nb">self</span><span class="p">,</span> <span class="s1">'this_is_a_test'</span><span class="p">)</span>
-    <span class="n">expect</span><span class="p">(</span><span class="n">lines</span><span class="p">.</span><span class="nf">include?</span><span class="p">(</span><span class="s1">'this_is_a_test'</span><span class="p">)).</span><span class="nf">to</span> <span class="n">be</span> <span class="kp">true</span> 
+  <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="n">connection</span><span class="p">)</span>
+    <span class="n">connection</span><span class="p">.</span><span class="nf">state</span> <span class="o">=</span> <span class="no">TCPClosed</span><span class="p">.</span><span class="nf">instance</span>
   <span class="k">end</span>
 <span class="k">end</span>
 </code></pre></div></main>
